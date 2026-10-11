@@ -1,0 +1,38 @@
+{
+  "name": "teyvat-mcd-oracle",
+  "version": "1.0.0",
+  "description": "麦门祈愿 · 提瓦特冒险家点餐台 —— 基于麦当劳 MCP 的元素共鸣点单与优惠券组合优化助手（零依赖）",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "demo": "node scripts/oracle.mjs demo",
+    "test": "node scripts/selftest.mjs",
+    "doctor": "node scripts/oracle.mjs doctor",
+    "anchor": "node scripts/oracle.mjs anchor",
+    "menu": "node scripts/oracle.mjs menu",
+    "party": "node scripts/oracle.mjs party --team 火,冰",
+    "artifact": "node scripts/oracle.mjs artifact --team 火,冰",
+    "wish": "node scripts/oracle.mjs wish",
+    "prizes": "node scripts/oracle.mjs prizes",
+    "calendar": "node scripts/oracle.mjs calendar",
+    "commission": "node scripts/oracle.mjs commission --team 火,冰"
+  },
+  "files": [
+    "scripts",
+    "references",
+    "SKILL.md",
+    "README.md",
+    "MCP_INTEGRATION.md"
+  ],
+  "keywords": [
+    "mcp",
+    "mcdonalds",
+    "skill",
+    "workbuddy",
+    "coupon-optimization"
+  ]
+}

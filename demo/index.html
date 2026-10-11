@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>麦门祈愿 · 提瓦特冒险家点餐台 — 交互演示</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b23;
+    --panel-2: #1d2430;
+    --line: #2a3341;
+    --text: #e6ebf2;
+    --muted: #8b98a9;
+    --faint: #66738a;
+    --gold: #e0a93b;
+    --green: #5fd8a4;
+    --red: #ff6b4a;
+    --pyro: #ff6b4a; --hydro: #4aa8ff; --anemo: #5fd8a4;
+    --electro: #b07cff; --dendro: #8cc63f; --cryo: #7fe3f0; --geo: #e0a93b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 36px 24px 72px; }
+  header h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: .5px; }
+  header h1 span { color: var(--gold); }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .warn {
+    margin: 20px 0 0; padding: 10px 14px; border-radius: 8px;
+    background: rgba(255,107,74,.08); border: 1px solid rgba(255,107,74,.3);
+    color: #ffb9a8; font-size: 12.5px;
+  }
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; margin-top: 24px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px;
+  }
+  .card + .card { margin-top: 16px; }
+  .card h2 {
+    font-size: 13px; margin: 0 0 14px; color: var(--muted);
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .els { display: flex; flex-wrap: wrap; gap: 8px; }
+  .el-btn {
+    cursor: pointer; user-select: none; border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--muted);
+    transition: .15s;
+  }
+  .el-btn:hover { border-color: currentColor; }
+  .el-btn[data-on="1"] { color: #0e1116; }
+  .el-btn[data-el="pyro"][data-on="1"] { background: var(--pyro); border-color: var(--pyro); }
+  .el-btn[data-el="hydro"][data-on="1"] { background: var(--hydro); border-color: var(--hydro); }
+  .el-btn[data-el="anemo"][data-on="1"] { background: var(--anemo); border-color: var(--anemo); }
+  .el-btn[data-el="electro"][data-on="1"] { background: var(--electro); border-color: var(--electro); }
+  .el-btn[data-el="dendro"][data-on="1"] { background: var(--dendro); border-color: var(--dendro); }
+  .el-btn[data-el="cryo"][data-on="1"] { background: var(--cryo); border-color: var(--cryo); }
+  .el-btn[data-el="geo"][data-on="1"] { background: var(--geo); border-color: var(--geo); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+  .row label { color: var(--muted); font-size: 13px; }
+  input[type=range] { width: 100%; accent-color: var(--gold); }
+  input[type=number] {
+    width: 92px; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--text); border-radius: 8px; padding: 6px 10px; font: inherit;
+  }
+  .chip {
+    display: inline-block; padding: 2px 9px; border-radius: 6px;
+    font-size: 11.5px; background: var(--panel-2); color: var(--faint); border: 1px solid var(--line);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; color: var(--faint); font-weight: 500; font-size: 12px; padding: 0 0 8px; }
+  td { padding: 7px 0; border-top: 1px solid var(--line); }
+  th, td { padding-right: 0; }
+  th + th, td + td { padding-left: 14px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .el-tag { font-size: 11px; padding: 1px 7px; border-radius: 5px; font-weight: 600; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .save { color: var(--green); font-weight: 700; }
+  .plan {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin-top: 10px; background: var(--panel-2);
+  }
+  .plan.best { border-color: rgba(224,169,59,.55); background: rgba(224,169,59,.07); }
+  .plan .head { display: flex; justify-content: space-between; align-items: baseline; }
+  .plan .lines { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+  .plan .lines div { padding: 2px 0; }
+  .note {
+    margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+    background: rgba(176,124,255,.07); border: 1px solid rgba(176,124,255,.28);
+    color: #d9c6ff; font-size: 12.5px;
+  }
+  code, kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #0b0e13; border: 1px solid var(--line);
+    border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: var(--cryo);
+  }
+  .cmds { margin-top: 12px; }
+  .cmds div { margin: 6px 0; color: var(--muted); font-size: 12.5px; }
+  .muted { color: var(--muted); }
+  .faint { color: var(--faint); font-size: 12.5px; }
+  .err { color: var(--red); font-size: 13px; }
+  a { color: var(--hydro); }
+  footer { margin-top: 32px; color: var(--faint); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>麦门祈愿 · <span>提瓦特冒险家点餐台</span></h1>
+    <p>TEYVAT McD ORACLE — 元素共鸣点单 × 优惠券组合优化 · 交互演示</p>
+  </header>
+
+  <div class="warn">
+    ⚠ 本页跑的是 <b>离线演示数据</b>（虚构示例，与麦当劳官方实时信息无关）。
+    页面直接 <code>import</code> 了仓库里同一份引擎代码 —— 不是另写一份假逻辑。
+    接入真实 MCP Token 后，门店 / 餐品 / 券 / 奖品全部来自麦当劳 MCP。
+  </div>
+
+  <div class="grid">
+
+    <!-- 左：控制面板 -->
+    <div>
+      <div class="card">
+        <h2>① 队伍元素</h2>
+        <div class="els" id="els"></div>
+        <div class="faint" style="margin-top:10px" id="reactionBox">—</div>
+      </div>
+
+      <div class="card">
+        <h2>② 预算</h2>
+        <div class="row">
+          <label>人均上限</label>
+          <input type="number" id="budget" value="50" min="0" step="5" />
+        </div>
+        <input type="range" id="budgetRange" min="15" max="90" step="5" value="50" />
+        <div class="faint" id="budgetHint">拖动调整；设 0 表示不限</div>
+      </div>
+
+      <div class="card">
+        <h2>③ 圣遗物（券）</h2>
+        <div class="faint" id="couponHint">加载中…</div>
+        <div class="row">
+          <label style="font-size:12.5px">模拟「麦麦省已领券」</label>
+          <input type="checkbox" id="bindToggle" style="accent-color:var(--gold);width:16px;height:16px" />
+        </div>
+        <div class="faint" style="margin-top:8px">
+          勾上 = 把麦麦省里还没领的券也纳入券池（相当于先领了券再算）。
+          真实场景下领取动作由 <code>auto-bind-coupons</code> 完成，会改动账号资产，
+          所以 CLI 里必须显式加 <code>--bind-coupons</code> 才执行。
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>④ 命令行等价操作</h2>
+        <div class="cmds" id="cmds"></div>
+      </div>
+    </div>
+
+    <!-- 右：结果 -->
+    <div>
+      <div class="card">
+        <h2>料理图鉴 · 元素映射</h2>
+        <div id="menuBox" class="faint">加载中…</div>
+      </div>
+
+      <div class="card">
+        <h2>元素共鸣点单</h2>
+        <div id="partyBox" class="faint">请先在上方选择队伍元素</div>
+      </div>
+
+      <div class="card">
+        <h2>圣遗物强化 · 券组合最优解</h2>
+        <div id="optBox" class="faint">—</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    本页是「麦当劳程序员节创意开发大赛」参赛作品 <b>teyvat-mcd-oracle</b> 的演示页。
+    参赛作品由参赛者独立开发，<b>非麦当劳官方产品</b>；餐品信息、价格及供应状态以麦当劳官方渠道实时结果为准。
+    <br />页面中的「元素」等表述是二创装饰性命名，仅指代菜品口味分类，与任何游戏官方无关。
+  </footer>
+</div>
+
+<script type="module">
+const EL_COLOR = { pyro:'--pyro', hydro:'--hydro', anemo:'--anemo', electro:'--electro', dendro:'--dendro', cryo:'--cryo', geo:'--geo' };
+
+async function boot() {
+  let EL, ART, MOCK;
+  try {
+    [EL, ART, MOCK] = await Promise.all([
+      import('../scripts/elemental.mjs'),
+      import('../scripts/artifact.mjs'),
+      import('../scripts/mock-data.mjs'),
+    ]);
+  } catch (e) {
+    document.querySelector('.warn').innerHTML =
+      '⚠ <b>无法加载引擎模块</b>：浏览器不允许 <code>file://</code> 下 import ES 模块。' +
+      '请在仓库根目录起一个静态服务再访问本页：<br><br>' +
+      '<code>python3 -m http.server 8000</code>　然后打开 ' +
+      '<code>http://localhost:8000/demo/</code><br><br>' +
+      '<span class="faint">错误详情：' + (e && e.message) + '</span>';
+    return;
+  }
+
+  // 支持用 URL 参数预设状态，方便分享与截图：?team=pyro,hydro&budget=60&bind=1
+  const params = new URLSearchParams(location.search);
+  const qTeam = (params.get('team') || '').split(',').map((s) => s.trim()).filter((k) => EL.ELEMENTS[k]);
+  const state = {
+    team: qTeam.length ? qTeam.slice(0, 4) : ['pyro', 'cryo'],
+    budget: params.has('budget') ? Number(params.get('budget')) || 0 : 50,
+    bind: params.get('bind') === '1',
+  };
+  const $ = (id) => document.getElementById(id);
+
+  // ---- 元素按钮
+  const elsBox = $('els');
+  for (const key of EL.ELEMENT_ORDER) {
+    const el = EL.ELEMENTS[key];
+    const b = document.createElement('div');
+    b.className = 'el-btn';
+    b.dataset.el = key;
+    b.textContent = `${el.zh} · ${el.taste}`;
+    b.onclick = () => {
+      const i = state.team.indexOf(key);
+      if (i >= 0) state.team.splice(i, 1);
+      else if (state.team.length < 4) state.team.push(key);
+      else state.team = [state.team[1], state.team[2], state.team[3], key];
+      render();
+    };
+    elsBox.appendChild(b);
+  }
+
+  // ---- 预算
+  const bInput = $('budget'), bRange = $('budgetRange');
+  bInput.value = state.budget;
+  bRange.value = Math.min(90, Math.max(15, state.budget || 15));
+  bInput.oninput = () => { state.budget = Number(bInput.value) || 0; bRange.value = Math.min(90, Math.max(15, state.budget || 15)); render(); };
+  bRange.oninput = () => { state.budget = Number(bRange.value); bInput.value = bRange.value; render(); };
+
+  // ---- 领券开关
+  const bToggle = $('bindToggle');
+  bToggle.checked = state.bind;
+  bToggle.onchange = (e) => { state.bind = e.target.checked; render(); };
+
+  // ---- 数据
+  const meals = MOCK.meals.map((m) => ({ code: m.code, name: m.name, price: m.price, raw: m }));
+  // 未领的券默认不在池子里 —— 勾上「已领券」才加入，这样开关才有真实语义
+  const allCoupons = ART.normalizeCoupons([...MOCK.storeCoupons, ...MOCK.availableCouponList]);
+  const baseCoupons = ART.normalizeCoupons(MOCK.storeCoupons);
+
+  const fmt = (c) => '¥' + (c / 100).toFixed(2);
+  const tagStyle = (key) => `background:color-mix(in srgb, var(${EL_COLOR[key]}) 18%, transparent);color:var(${EL_COLOR[key]})`;
+
+  function bestElement(name) {
+    let best = null, bs = 0;
+    for (const k of EL.ELEMENT_ORDER) {
+      const s = EL.scoreForElement(name, k);
+      if (s > bs) { bs = s; best = k; }
+    }
+    return best;
+  }
+
+  function render() {
+    // 按钮态
+    elsBox.querySelectorAll('.el-btn').forEach((b) => {
+      b.dataset.on = state.team.includes(b.dataset.el) ? '1' : '0';
+    });
+    $('budgetHint').textContent = state.budget ? `上限 ¥${state.budget}（超预算会先砍补位项，主菜保留）` : '不限预算';
+
+    // 反应
+    const reaction = EL.reactionOf(state.team);
+    $('reactionBox').innerHTML = reaction
+      ? `<b style="color:var(--gold)">「${reaction.name}」</b> ${reaction.note}`
+      : '至少选一个元素';
+
+    // 券提示
+    const pool = state.bind ? allCoupons : baseCoupons;
+    const uncertain = pool.filter((c) => c.uncertain);
+    $('couponHint').innerHTML =
+      `当前券池 <b>${pool.length}</b> 张` +
+      (state.bind ? `（已含麦麦省 ${MOCK.availableCouponList.length} 张未领券）` : `（未领券未计入，勾选上方可加入）`) +
+      `，其中 <b>${uncertain.length}</b> 张` +
+      `（<span class="muted">${uncertain.map((c) => c.name).join('、') || '无'}</span>）适用品类未知，不参与本地估价。`;
+
+    // 图鉴
+    const shown = meals.slice(0, 12);
+    $('menuBox').innerHTML = `<table>
+      <tr><th>餐品</th><th>code</th><th class="num">价格</th><th>元素</th></tr>
+      ${shown.map((m) => {
+        const k = bestElement(m.name);
+        return `<tr><td>${m.name}</td><td class="faint">${m.code}</td>
+          <td class="num">${fmt(m.price)}</td>
+          <td>${k ? `<span class="el-tag" style="${tagStyle(k)}">${EL.ELEMENTS[k].zh}</span>` : '<span class="faint">·</span>'}</td></tr>`;
+      }).join('')}
+    </table><div class="faint" style="margin-top:8px">仅展示前 12 项；完整图鉴见 <code>oracle.mjs menu</code></div>`;
+
+    // 组队
+    if (!state.team.length) {
+      $('partyBox').innerHTML = '<span class="faint">请先在上方选择队伍元素</span>';
+      $('optBox').innerHTML = '<span class="faint">—</span>';
+      return;
+    }
+    const plan = EL.buildPartyOrder(meals, state.team, { budgetCents: state.budget ? state.budget * 100 : null });
+    $('partyBox').innerHTML = `
+      <table>
+        <tr><th>槽位</th><th>推荐餐品</th><th>元素</th><th class="num">价格</th></tr>
+        ${plan.picks.map((p) => {
+          const st = EL.elementStyle(p.element);
+          const slot = p.filler ? '补位' : st.slotName;
+          return `<tr><td class="faint">${slot}</td><td>${p.name}</td>
+            <td><span class="el-tag" style="${tagStyle(p.element)}">${st.zh}</span></td>
+            <td class="num">${fmt(p.meal.price)}</td></tr>`;
+        }).join('')}
+      </table>
+      <div class="total"><span class="muted">原价合计</span>
+        <span><span class="big">${fmt(plan.originalCents)}</span>
+        <span class="faint"> ≈ ${ART.centsToMora(plan.originalCents)} 摩拉</span></span></div>`;
+
+    // 券优化
+    const forOptimize = pool;
+    const lines = plan.picks.map((p, i) => ({
+      id: 'L' + i, productCode: p.meal.code, name: p.name,
+      unitPriceCents: p.meal.price, quantity: 1,
+    }));
+    const res = ART.optimizeCart(lines, forOptimize, { topK: 3 });
+    const shownPlans = res.plans.filter((p) => p.savedCents > 0).slice(0, 3);
+
+    let html = '';
+    if (!shownPlans.length) {
+      html = '<span class="muted">没有找到能进一步压价的组合 —— 这套配队已经是当前券池下的最优了。</span>';
+    } else {
+      html = shownPlans.map((p, i) => {
+        const tag = i === 0 ? '<span class="chip" style="color:var(--gold);border-color:rgba(224,169,59,.5)">★ 最优</span>'
+                            : `<span class="chip">第${i + 1}优</span>`;
+        const used = p.lines.filter((l) => l.coupon).map((l) => `<div>· ${l.name} → <b>${l.coupon.name}</b></div>`).join('');
+        const ord = p.orderCoupon ? `<div>· 整单 → <b>${p.orderCoupon.name}</b></div>` : '';
+        return `<div class="plan ${i === 0 ? 'best' : ''}">
+          <div class="head">${tag}
+            <span><span class="big">${fmt(p.finalCents)}</span>
+            <span class="save">　省 ${fmt(p.savedCents)}</span></span>
+          </div>
+          <div class="lines">${used}${ord || (used ? '' : '<div class="faint">未使用任何券</div>')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    html += `<div class="note">
+      <b>注意这里的措辞。</b>上面的金额全部标为「本地估算」—— 因为券的适用范围在接口里
+      常常只有一个名字。把品类券误判成整单券，会让估算翻倍虚高（开发时真踩过：
+      ¥59.50 被算成 ¥28.75）。所以本项目本地一律往保守方向判，最终价一律由
+      <code>calculate-price</code> 核价，并且<b>两段结论不混排</b>，避免让人分不清哪个数字能信。
+      <br /><br />
+      跑真实核价：<code>MCD_MCP_TOKEN=... node scripts/oracle.mjs artifact --team ${state.team.map((k) => EL.ELEMENTS[k].zh).join(',')}</code>
+    </div>`;
+
+    $('optBox').innerHTML = html;
+
+    // 命令行
+    const teamZh = state.team.map((k) => EL.ELEMENTS[k].zh).join(',');
+    $('cmds').innerHTML = `
+      <div><code>node scripts/oracle.mjs party --team ${teamZh}${state.budget ? ` --budget ${state.budget}` : ''}</code></div>
+      <div><code>node scripts/oracle.mjs artifact --team ${teamZh}${state.bind ? ' --bind-coupons' : ''}</code></div>
+      <div><code>node scripts/oracle.mjs commission --team ${teamZh} --confirm</code></div>`;
+  }
+
+  render();
+}
+
+boot();
+</script>
+</body>
+</html>

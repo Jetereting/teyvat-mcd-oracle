@@ -1,0 +1,20 @@
+# 依赖（本项目零依赖，压根不该有 node_modules，防手滑）
+node_modules/
+
+# 本地 MCP 配置里可能带真实 Token，绝不入库
+.env
+.env.*
+.mcp.local.json
+local.mcp.json
+*.token
+
+# 系统 / 编辑器
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# 运行产物
+out/
+tmp/
+*.log
